@@ -1319,16 +1319,16 @@ export class BaileysStartupService extends ChannelStartupService {
 
             this.logger.verbose('Updating contact in database');
             await this.repository.contact.update([contactRaw], this.instance.name, database.SAVE_DATA.CONTACTS);
-            return;
-          }
+          } else {
+          
+            this.logger.verbose('Contact not found in database');
 
-          this.logger.verbose('Contact not found in database');
+            this.logger.verbose('Sending data to webhook in event CONTACTS_UPSERT');
+            this.sendDataWebhook(Events.CONTACTS_UPSERT, contactRaw);
 
-          this.logger.verbose('Sending data to webhook in event CONTACTS_UPSERT');
-          this.sendDataWebhook(Events.CONTACTS_UPSERT, contactRaw);
-
-          this.logger.verbose('Inserting contact in database');
-          this.repository.contact.insert([contactRaw], this.instance.name, database.SAVE_DATA.CONTACTS);
+            this.logger.verbose('Inserting contact in database');
+            this.repository.contact.insert([contactRaw], this.instance.name, database.SAVE_DATA.CONTACTS);
+          } 
         }
       } catch (error) {
         this.logger.error(error);
