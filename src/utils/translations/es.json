@@ -23,5 +23,6 @@
   "cw.contactMessage.name": "Nombre",
   "cw.contactMessage.number": "Numero",
   "cw.message.notsent": "🚨 El mensaje no se pudo enviar. Comprueba tu conexión. {{error}}",
-  "cw.message.edited": "Mensaje editado"
+  "cw.message.edited": "Mensaje editado",
+  "cw.message.deleted": "Deleted Message"
 }

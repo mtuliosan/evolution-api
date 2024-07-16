@@ -741,7 +741,6 @@ export class ChatwootService {
       findByName = inbox.payload.find((inbox) => inbox.name === this.getClientCwConfig().name_inbox.split('-cwId-')[0]);
     }
 
-
     if (!findByName) {
       this.logger.warn('inbox not found');
       return null;
@@ -2123,36 +2122,67 @@ export class ChatwootService {
         }
       }
 
-      if (event === Events.MESSAGES_DELETE) {
-        const chatwootDelete = this.configService.get<Chatwoot>('CHATWOOT').MESSAGE_DELETE;
-        if (chatwootDelete === true) {
-          this.logger.verbose('deleting message from instance: ' + instance.instanceName);
+      // if (event === Events.MESSAGES_DELETE) {
+      //   const chatwootDelete = this.configService.get<Chatwoot>('CHATWOOT').MESSAGE_DELETE;
+      //   if (chatwootDelete === true) {
+      //     this.logger.verbose('deleting message from instance: ' + instance.instanceName);
 
-          if (!body?.key?.id) {
-            this.logger.warn('message id not found');
+      //     if (!body?.key?.id) {
+      //       this.logger.warn('message id not found');
+      //       return;
+      //     }
+
+      //     const message = await this.getMessageByKeyId(instance, body.key.id);
+      //     if (message?.chatwoot?.messageId && message?.chatwoot?.conversationId) {
+      //       this.logger.verbose('deleting message in repository. Message id: ' + body.key.id);
+      //       this.repository.message.delete({
+      //         where: {
+      //           key: {
+      //             id: body.key.id,
+      //           },
+      //           owner: instance.instanceName,
+      //         },
+      //       });
+
+      //       this.logger.verbose('deleting message in chatwoot. Message id: ' + body.key.id);
+      //       return await client.messages.delete({
+      //         accountId: this.provider.account_id,
+      //         conversationId: message.chatwoot.conversationId,
+      //         messageId: message.chatwoot.messageId,
+      //       });
+      //     }
+      //   }
+      // }
+
+      if (event === Events.MESSAGES_DELETE) {
+        this.logger.error('Message: ' + body);
+        if (!body?.key?.id) {
+          this.logger.warn('message id not found');
+          return;
+        }
+        const message = await this.getMessageByKeyId(instance, body.key.id);
+        const editedText = `${message?.message}\n\n_\`${i18next.t('cw.message.deleted')}.\`_`;
+        const messageType = message.key?.fromMe ? 'outgoing' : 'incoming';
+
+        if (message && message.chatwoot?.conversationId) {
+          const send = await this.createMessage(
+            instance,
+            message.chatwoot.conversationId,
+            editedText,
+            messageType,
+            false,
+            [],
+            {
+              message: { extendedTextMessage: { contextInfo: { stanzaId: message.key.id } } },
+            },
+            'WAID:' + body.key.id,
+          );
+          if (!send) {
+            this.logger.warn('deleted message not sent');
             return;
           }
-
-          const message = await this.getMessageByKeyId(instance, body.key.id);
-          if (message?.chatwoot?.messageId && message?.chatwoot?.conversationId) {
-            this.logger.verbose('deleting message in repository. Message id: ' + body.key.id);
-            this.repository.message.delete({
-              where: {
-                key: {
-                  id: body.key.id,
-                },
-                owner: instance.instanceName,
-              },
-            });
-
-            this.logger.verbose('deleting message in chatwoot. Message id: ' + body.key.id);
-            return await client.messages.delete({
-              accountId: this.provider.account_id,
-              conversationId: message.chatwoot.conversationId,
-              messageId: message.chatwoot.messageId,
-            });
-          }
         }
+        return;
       }
 
       if (event === 'messages.edit') {
