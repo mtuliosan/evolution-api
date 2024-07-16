@@ -2161,7 +2161,7 @@ export class ChatwootService {
           return;
         }
         const message = await this.getMessageByKeyId(instance, body.key.id);
-        const editedText = `${message?.message}\n\n_\`${i18next.t('cw.message.deleted')}.\`_`;
+        const editedText = `\n\n_\`${i18next.t('cw.message.deleted')}.\`_`;
         const messageType = message.key?.fromMe ? 'outgoing' : 'incoming';
 
         if (message && message.chatwoot?.conversationId) {
